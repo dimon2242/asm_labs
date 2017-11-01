@@ -3,7 +3,6 @@ global _start
 
 section .bss
 	result resb 10
-	resultlen equ $-result
 
 section .text
 _start:
