@@ -44,22 +44,21 @@ _addition:
 	add esi, edx
 	mov eax, esi
 	mov ebx, 0
-	mov edx, eax
 	jmp _calc
 
 _calc:
 	mov edx, 0
 	div ecx
-	mov [result + ebx], edx
+	mov [result + ebx], dl
 	cmp eax, 0
 	je _print
-	cmp ebx, resultlen - 1
-	jz _print
+	;cmp ebx, resultlen - 1
+	;jz _print
 	inc ebx
 	jmp _calc
 
 _print:
-	mov eax, [result + ebx]
+	;mov al, [result + ebx]
 	add byte [result + ebx], '0'
 	PUTCHAR byte [result + ebx]
 	cmp ebx, 0
