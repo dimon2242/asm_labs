@@ -52,13 +52,10 @@ _calc:
 	mov [result + ebx], dl
 	cmp eax, 0
 	je _print
-	;cmp ebx, resultlen - 1
-	;jz _print
 	inc ebx
 	jmp _calc
 
 _print:
-	;mov al, [result + ebx]
 	add byte [result + ebx], '0'
 	PUTCHAR byte [result + ebx]
 	cmp ebx, 0
