@@ -1,9 +1,6 @@
 %include "stud_io.inc"
 global _start
 
-section .bss
-	result resb 10
-
 section .text
 _start:
 	mov edx, 0
