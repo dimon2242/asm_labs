@@ -26,9 +26,6 @@ inputNumber:
 	mov ebp, esp
 	sub esp, 4
 
-	;push edx
-	;push ebx
-	;push ecx
 	pushad
 
 .while:
@@ -96,9 +93,7 @@ outputNumber:
 	ret
 
 _enderr:
-	;pop ecx
-	;pop ebx
-	;pop edx
+
 	popad
 
 	mov esp, ebp
