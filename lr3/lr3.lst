@@ -251,7 +251,7 @@
    251 000000CE BA00000000              	mov edx, 0
    252 000000D3 F7F1                    	div ecx
    253 000000D5 4E                      	dec esi
-   254 000000D6 8816                    	mov byte [esi], dl
+   254 000000D6 8816                    	mov [esi], dl
    255 000000D8 83F800                  	cmp eax, 0
    256 000000DB 7402                    	je .print
    257                                  	
@@ -260,7 +260,7 @@
    260                                  .print:
    261 000000DF 39EE                    	cmp esi, ebp
    262 000000E1 7429                    	je .return
-   263 000000E3 800630                  	add byte [esi], byte '0'
+   263 000000E3 800630                  	add [esi], byte '0'
    264                                  	PUTCHAR byte [esi]
    265 000000E6 60                  <1>  pusha
    266 000000E7 9C                  <1>  pushf

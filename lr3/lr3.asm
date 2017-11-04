@@ -69,7 +69,7 @@ outputNumber:
 	mov edx, 0
 	div ecx
 	dec esi
-	mov byte [esi], dl
+	mov [esi], dl
 	cmp eax, 0
 	je .print
 	
@@ -78,7 +78,7 @@ outputNumber:
 .print:
 	cmp esi, ebp
 	je .return
-	add byte [esi], byte '0'
+	add [esi], byte '0'
 	PUTCHAR byte [esi]
 	inc esi
 	jmp .print
