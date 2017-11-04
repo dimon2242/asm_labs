@@ -1,0 +1,393 @@
+     1                                  %include "stud_io.inc"
+     2                              <1> ;; File stud_io.inc for Linux O.S.
+     3                              <1> ;; Copyright (c) Andrey Vikt. Stolyarov, 2009.
+     4                              <1> ;; I, the author, hereby grant everyone the right to use this
+     5                              <1> ;; file for any purpose, in any manner, in it's original or
+     6                              <1> ;; modified form, provided that any modified versions are
+     7                              <1> ;; clearly marked as such.
+     8                              <1> 
+     9                              <1> ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    10                              <1> ;; system dependend part
+    11                              <1> 
+    12                              <1> ; generic 3-param syscall
+    13                              <1> %macro _syscall_3 4
+    14                              <1> 	push edx
+    15                              <1> 	push ecx
+    16                              <1> 	push ebx ; it is senseless to save eax as it holds the return
+    17                              <1> 	push %1
+    18                              <1> 	push %2
+    19                              <1> 	push %3
+    20                              <1> 	push %4
+    21                              <1> 	pop edx
+    22                              <1> 	pop ecx
+    23                              <1> 	pop ebx
+    24                              <1> 	pop eax 
+    25                              <1> 	int 0x80
+    26                              <1> 	pop ebx
+    27                              <1> 	pop ecx
+    28                              <1> 	pop edx
+    29                              <1> %endmacro
+    30                              <1> 
+    31                              <1> ; syscall_exit is the only syscall we use that has 1 parameter
+    32                              <1> %macro _syscall_exit 1
+    33                              <1> 	mov ebx, %1	; exit code
+    34                              <1> 	mov eax, 1	; 1 = sys_exit
+    35                              <1> 	int 0x80
+    36                              <1> %endmacro
+    37                              <1> 
+    38                              <1> ;; system dependent part ends here
+    39                              <1> ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    40                              <1> 
+    41                              <1> ; %1: descriptor   %2: buffer addr   %3: buffer length 
+    42                              <1> ; output: eax: read bytes
+    43                              <1> %macro _syscall_read 3
+    44                              <1> 	_syscall_3 3,%1,%2,%3
+    45                              <1> %endmacro
+    46                              <1> 
+    47                              <1> ; %1: descriptor   %2: buffer addr   %3: buffer length 
+    48                              <1> ; output: eax: written bytes
+    49                              <1> %macro _syscall_write 3
+    50                              <1> 	_syscall_3 4,%1,%2,%3
+    51                              <1> %endmacro
+    52                              <1> 
+    53                              <1> ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    54                              <1> %macro 	PRINT 1
+    55                              <1> 	pusha
+    56                              <1> 	pushf
+    57                              <1> 	jmp %%astr
+    58                              <1> %%str	db	%1, 0
+    59                              <1> %%strln	equ	$-%%str
+    60                              <1> %%astr:	_syscall_write 1, %%str, %%strln
+    61                              <1> 	popf
+    62                              <1> 	popa
+    63                              <1> %endmacro
+    64                              <1> 
+    65                              <1> ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    66                              <1> %macro	PUTCHAR 1
+    67                              <1> 	pusha
+    68                              <1> 	pushf
+    69                              <1> %ifstr %1
+    70                              <1> 	mov	al, %1
+    71                              <1> %elifnum %1
+    72                              <1> 	mov	al, %1
+    73                              <1> %elifidni %1,al
+    74                              <1> 	nop
+    75                              <1> %elifidni %1,ah
+    76                              <1> 	mov	al, ah
+    77                              <1> %elifidni %1,bl
+    78                              <1> 	mov	al, bl
+    79                              <1> %elifidni %1,bh
+    80                              <1> 	mov	al, bh
+    81                              <1> %elifidni %1,cl
+    82                              <1> 	mov	al, cl
+    83                              <1> %elifidni %1,ch
+    84                              <1> 	mov	al, ch
+    85                              <1> %elifidni %1,dl
+    86                              <1> 	mov	al, dl
+    87                              <1> %elifidni %1,dh
+    88                              <1> 	mov	al, dh
+    89                              <1> %else
+    90                              <1> 	mov	al, %1  ; let's hope it is a memory location such as [var]
+    91                              <1> %endif
+    92                              <1> 	sub	esp, 2  ; reserve memory for buffer
+    93                              <1> 	mov	edi, esp
+    94                              <1> 	mov	[edi], al
+    95                              <1> 	_syscall_write 1, edi, 1
+    96                              <1> 	add	esp, 2
+    97                              <1> 	popf
+    98                              <1> 	popa
+    99                              <1> %endmacro
+   100                              <1> 
+   101                              <1> ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   102                              <1> %macro	GETCHAR 0
+   103                              <1> 	pushf
+   104                              <1> 	push	edi
+   105                              <1> 	sub	esp, 2
+   106                              <1> 	mov	edi, esp
+   107                              <1> 	_syscall_read 0, edi, 1
+   108                              <1> 	cmp	eax, 1
+   109                              <1> 	jne	%%eof_reached
+   110                              <1> 	xor	eax,eax
+   111                              <1> 	mov	al, [edi]
+   112                              <1> 	jmp	%%gcquit
+   113                              <1> %%eof_reached:
+   114                              <1> 	xor	eax, eax
+   115                              <1> 	not	eax 		; eax := -1
+   116                              <1> %%gcquit:
+   117                              <1> 	add	esp, 2
+   118                              <1> 	pop	edi
+   119                              <1> 	popf
+   120                              <1> %endmacro
+   121                              <1> 
+   122                              <1> ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   123                              <1> %macro FINISH 0-1 0
+   124                              <1> 	_syscall_exit %1
+   125                              <1> %endmacro
+   126                                  global _start
+   127                                  
+   128                                  section .bss
+   129 00000000 <res 0000000A>          	result resb 10
+   130                                  
+   131                                  section .text
+   132                                  _start:
+   133 00000000 BA00000000              	mov edx, 0
+   134 00000005 B90A000000              	mov ecx, 10
+   135 0000000A BB00000000              	mov ebx, 0
+   136 0000000F B800000000              	mov eax, 0
+   137 00000014 BE00000000              	mov esi, 0
+   138 00000019 E81C000000              	call inputNumber
+   139 0000001E 89C6                    	mov esi, eax
+   140 00000020 E815000000              	call inputNumber
+   141 00000025 01F0                    	add eax, esi
+   142 00000027 BB00000000              	mov ebx, 0
+   143 0000002C 50                      	push eax
+   144 0000002D E890000000              	call outputNumber
+   145 00000032 83C404                  	add esp, 4
+   146 00000035 E9DB000000              	jmp _end
+   147                                  	
+   148                                  inputNumber:
+   149 0000003A 55                      	push ebp
+   150 0000003B 89E5                    	mov ebp, esp
+   151 0000003D 83EC04                  	sub esp, 4
+   152                                  
+   153                                  	;push edx
+   154                                  	;push ebx
+   155                                  	;push ecx
+   156 00000040 60                      	pushad
+   157                                  
+   158                                  .while:
+   159                                  	GETCHAR
+   160 00000041 9C                  <1>  pushf
+   161 00000042 57                  <1>  push edi
+   162 00000043 83EC02              <1>  sub esp, 2
+   163 00000046 89E7                <1>  mov edi, esp
+   164                              <1>  _syscall_read 0, edi, 1
+   165                              <2>  _syscall_3 3,%1,%2,%3
+   166 00000048 52                  <3>  push edx
+   167 00000049 51                  <3>  push ecx
+   168 0000004A 53                  <3>  push ebx
+   169 0000004B 6A03                <3>  push %1
+   170 0000004D 6A00                <3>  push %2
+   171 0000004F 57                  <3>  push %3
+   172 00000050 6A01                <3>  push %4
+   173 00000052 5A                  <3>  pop edx
+   174 00000053 59                  <3>  pop ecx
+   175 00000054 5B                  <3>  pop ebx
+   176 00000055 58                  <3>  pop eax
+   177 00000056 CD80                <3>  int 0x80
+   178 00000058 5B                  <3>  pop ebx
+   179 00000059 59                  <3>  pop ecx
+   180 0000005A 5A                  <3>  pop edx
+   181 0000005B 83F801              <1>  cmp eax, 1
+   182 0000005E 7506                <1>  jne %%eof_reached
+   183 00000060 31C0                <1>  xor eax,eax
+   184 00000062 8A07                <1>  mov al, [edi]
+   185 00000064 EB04                <1>  jmp %%gcquit
+   186                              <1> %%eof_reached:
+   187 00000066 31C0                <1>  xor eax, eax
+   188 00000068 F7D0                <1>  not eax
+   189                              <1> %%gcquit:
+   190 0000006A 83C402              <1>  add esp, 2
+   191 0000006D 5F                  <1>  pop edi
+   192 0000006E 9D                  <1>  popf
+   193 0000006F 83F80A                  	cmp eax, 10
+   194 00000072 7421                    	je .return
+   195 00000074 83F820                  	cmp eax, " "
+   196 00000077 741C                    	je .return
+   197 00000079 83F830                  	cmp eax, '0'
+   198 0000007C 7C1F                    	jl .err
+   199 0000007E 83F839                  	cmp eax, '9'
+   200 00000081 7F1A                    	jg .err
+   201 00000083 89C3                    	mov ebx, eax
+   202 00000085 83EB30                  	sub ebx, '0'
+   203 00000088 89D0                    	mov eax, edx
+   204 0000008A F7E1                    	mul ecx
+   205 0000008C 89C2                    	mov edx, eax
+   206 0000008E 01DA                    	add edx, ebx
+   207 00000090 8955FC                  	mov [ebp-4], edx
+   208 00000093 EBAC                    	jmp .while
+   209                                  .return:
+   210 00000095 61                      	popad
+   211 00000096 8B45FC                  	mov eax, [ebp-4]
+   212                                  	;pop ecx
+   213                                  	;pop ebx
+   214                                  	;pop edx
+   215                                  	
+   216 00000099 89EC                    	mov esp, ebp
+   217 0000009B 5D                      	pop ebp
+   218 0000009C C3                      	ret
+   219                                  	
+   220                                  .err:
+   221                                  	PRINT "ERROR"
+   222 0000009D 60                  <1>  pusha
+   223 0000009E 9C                  <1>  pushf
+   224 0000009F EB06                <1>  jmp %%astr
+   225 000000A1 4552524F5200        <1> %%str db %1, 0
+   226                              <1> %%strln equ $-%%str
+   227                              <1> %%astr: _syscall_write 1, %%str, %%strln
+   228                              <2> ..@6.astr: 
+   229                              <2>  _syscall_3 4,%1,%2,%3
+   230 000000A7 52                  <3>  push edx
+   231 000000A8 51                  <3>  push ecx
+   232 000000A9 53                  <3>  push ebx
+   233 000000AA 6A04                <3>  push %1
+   234 000000AC 6A01                <3>  push %2
+   235 000000AE 68[A1000000]        <3>  push %3
+   236 000000B3 6A06                <3>  push %4
+   237 000000B5 5A                  <3>  pop edx
+   238 000000B6 59                  <3>  pop ecx
+   239 000000B7 5B                  <3>  pop ebx
+   240 000000B8 58                  <3>  pop eax
+   241 000000B9 CD80                <3>  int 0x80
+   242 000000BB 5B                  <3>  pop ebx
+   243 000000BC 59                  <3>  pop ecx
+   244 000000BD 5A                  <3>  pop edx
+   245 000000BE 9D                  <1>  popf
+   246 000000BF 61                  <1>  popa
+   247 000000C0 EB53                    	jmp _end
+   248                                  
+   249                                  outputNumber:
+   250 000000C2 55                      	push ebp
+   251 000000C3 89E5                    	mov ebp, esp
+   252 000000C5 83EC08                  	sub esp, 8
+   253                                  
+   254 000000C8 60                      	pushad
+   255                                  
+   256 000000C9 8B4508                  	mov eax, [ebp+8]
+   257 000000CC 89EE                    	mov esi, ebp
+   258                                  
+   259                                  .while:
+   260 000000CE BA00000000              	mov edx, 0
+   261 000000D3 F7F1                    	div ecx
+   262 000000D5 4E                      	dec esi
+   263 000000D6 8816                    	mov byte [esi], dl
+   264 000000D8 83F800                  	cmp eax, 0
+   265 000000DB 7402                    	je .print
+   266                                  	
+   267 000000DD EBEF                    	jmp .while
+   268                                  
+   269                                  .print:
+   270 000000DF 39EE                    	cmp esi, ebp
+   271 000000E1 7429                    	je .return
+   272 000000E3 800630                  	add byte [esi], byte '0'
+   273                                  	PUTCHAR byte [esi]
+   274 000000E6 60                  <1>  pusha
+   275 000000E7 9C                  <1>  pushf
+   276                              <1> %ifstr %1
+   277                              <1>  mov al, %1
+   278                              <1> %elifnum %1
+   279                              <1>  mov al, %1
+   280                              <1> %elifidni %1,al
+   281                              <1>  nop
+   282                              <1> %elifidni %1,ah
+   283                              <1>  mov al, ah
+   284                              <1> %elifidni %1,bl
+   285                              <1>  mov al, bl
+   286                              <1> %elifidni %1,bh
+   287                              <1>  mov al, bh
+   288                              <1> %elifidni %1,cl
+   289                              <1>  mov al, cl
+   290                              <1> %elifidni %1,ch
+   291                              <1>  mov al, ch
+   292                              <1> %elifidni %1,dl
+   293                              <1>  mov al, dl
+   294                              <1> %elifidni %1,dh
+   295                              <1>  mov al, dh
+   296                              <1> %else
+   297 000000E8 8A06                <1>  mov al, %1
+   298                              <1> %endif
+   299 000000EA 83EC02              <1>  sub esp, 2
+   300 000000ED 89E7                <1>  mov edi, esp
+   301 000000EF 8807                <1>  mov [edi], al
+   302                              <1>  _syscall_write 1, edi, 1
+   303                              <2>  _syscall_3 4,%1,%2,%3
+   304 000000F1 52                  <3>  push edx
+   305 000000F2 51                  <3>  push ecx
+   306 000000F3 53                  <3>  push ebx
+   307 000000F4 6A04                <3>  push %1
+   308 000000F6 6A01                <3>  push %2
+   309 000000F8 57                  <3>  push %3
+   310 000000F9 6A01                <3>  push %4
+   311 000000FB 5A                  <3>  pop edx
+   312 000000FC 59                  <3>  pop ecx
+   313 000000FD 5B                  <3>  pop ebx
+   314 000000FE 58                  <3>  pop eax
+   315 000000FF CD80                <3>  int 0x80
+   316 00000101 5B                  <3>  pop ebx
+   317 00000102 59                  <3>  pop ecx
+   318 00000103 5A                  <3>  pop edx
+   319 00000104 83C402              <1>  add esp, 2
+   320 00000107 9D                  <1>  popf
+   321 00000108 61                  <1>  popa
+   322 00000109 46                      	inc esi
+   323 0000010A EBD3                    	jmp .print
+   324                                  
+   325                                  .return:
+   326 0000010C 61                      	popad
+   327 0000010D 89EC                    	mov esp, ebp
+   328 0000010F 5D                      	pop ebp
+   329 00000110 C3                      	ret
+   330                                  
+   331                                  _enderr:
+   332                                  	;pop ecx
+   333                                  	;pop ebx
+   334                                  	;pop edx
+   335 00000111 61                      	popad
+   336                                  	
+   337 00000112 89EC                    	mov esp, ebp
+   338 00000114 5D                      	pop ebp
+   339                                  _end:
+   340                                  	PUTCHAR 10
+   341 00000115 60                  <1>  pusha
+   342 00000116 9C                  <1>  pushf
+   343                              <1> %ifstr %1
+   344                              <1>  mov al, %1
+   345                              <1> %elifnum %1
+   346 00000117 B00A                <1>  mov al, %1
+   347                              <1> %elifidni %1,al
+   348                              <1>  nop
+   349                              <1> %elifidni %1,ah
+   350                              <1>  mov al, ah
+   351                              <1> %elifidni %1,bl
+   352                              <1>  mov al, bl
+   353                              <1> %elifidni %1,bh
+   354                              <1>  mov al, bh
+   355                              <1> %elifidni %1,cl
+   356                              <1>  mov al, cl
+   357                              <1> %elifidni %1,ch
+   358                              <1>  mov al, ch
+   359                              <1> %elifidni %1,dl
+   360                              <1>  mov al, dl
+   361                              <1> %elifidni %1,dh
+   362                              <1>  mov al, dh
+   363                              <1> %else
+   364                              <1>  mov al, %1
+   365                              <1> %endif
+   366 00000119 83EC02              <1>  sub esp, 2
+   367 0000011C 89E7                <1>  mov edi, esp
+   368 0000011E 8807                <1>  mov [edi], al
+   369                              <1>  _syscall_write 1, edi, 1
+   370                              <2>  _syscall_3 4,%1,%2,%3
+   371 00000120 52                  <3>  push edx
+   372 00000121 51                  <3>  push ecx
+   373 00000122 53                  <3>  push ebx
+   374 00000123 6A04                <3>  push %1
+   375 00000125 6A01                <3>  push %2
+   376 00000127 57                  <3>  push %3
+   377 00000128 6A01                <3>  push %4
+   378 0000012A 5A                  <3>  pop edx
+   379 0000012B 59                  <3>  pop ecx
+   380 0000012C 5B                  <3>  pop ebx
+   381 0000012D 58                  <3>  pop eax
+   382 0000012E CD80                <3>  int 0x80
+   383 00000130 5B                  <3>  pop ebx
+   384 00000131 59                  <3>  pop ecx
+   385 00000132 5A                  <3>  pop edx
+   386 00000133 83C402              <1>  add esp, 2
+   387 00000136 9D                  <1>  popf
+   388 00000137 61                  <1>  popa
+   389                                  	FINISH
+   390                              <1>  _syscall_exit %1
+   391 00000138 BB00000000          <2>  mov ebx, %1
+   392 0000013D B801000000          <2>  mov eax, 1
+   393 00000142 CD80                <2>  int 0x80
