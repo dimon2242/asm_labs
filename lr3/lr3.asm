@@ -3,16 +3,11 @@ global _start
 
 section .text
 _start:
-	mov edx, 0
-	mov ecx, 10
-	mov ebx, 0
-	mov eax, 0
-	mov esi, 0
+	
 	call inputNumber
 	mov esi, eax
 	call inputNumber
 	add eax, esi
-	mov ebx, 0
 	push eax
 	call outputNumber
 	add esp, 4
@@ -23,7 +18,15 @@ inputNumber:
 	mov ebp, esp
 	sub esp, 4
 
-	pushad
+	push ebx
+	push ecx
+	push edx
+	pushfd
+
+	mov edx, 0
+	mov ecx, 10
+	mov ebx, 0
+	mov eax, 0
 
 .while:
 	GETCHAR
@@ -44,8 +47,12 @@ inputNumber:
 	mov [ebp-4], edx
 	jmp .while
 .return:
-	popad
 	mov eax, [ebp-4]
+
+	popfd
+	pop edx
+	pop ecx
+	pop ebx
 
 	mov esp, ebp
 	pop ebp
@@ -61,6 +68,9 @@ outputNumber:
 	sub esp, 8
 
 	pushad
+	pushfd
+
+	mov ecx, 10
 
 	mov eax, [ebp+8]
 	mov esi, ebp
@@ -84,17 +94,13 @@ outputNumber:
 	jmp .print
 
 .return:
+	popfd
 	popad
+
 	mov esp, ebp
 	pop ebp
 	ret
 
-_enderr:
-
-	popad
-
-	mov esp, ebp
-	pop ebp
 _end:
 	PUTCHAR 10
 	FINISH

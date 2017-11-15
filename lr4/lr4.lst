@@ -1,0 +1,33 @@
+     1                                  ;%include "input_number.inc"
+     2                                  ;%include "output_number.inc"
+     3                                  ;%include "my_finish.inc"
+     4                                  ;%include "putchar.inc"
+     5                                  ;%include "getchar.inc"
+     6                                  
+     7                                  EXTERN getChar
+     8                                  EXTERN finish
+     9                                  EXTERN putChar
+    10                                  EXTERN outputNumber
+    11                                  EXTERN inputNumber
+    12                                  
+    13                                  section .data
+    14 00000000 0A                      	end_newline db 10
+    15                                  
+    16                                  global _start
+    17                                  
+    18                                  section .text
+    19                                  _start:
+    20                                  	
+    21 00000000 E8(00000000)            	call inputNumber
+    22 00000005 89C6                    	mov esi, eax
+    23 00000007 E8(00000000)            	call inputNumber
+    24 0000000C 01F0                    	add eax, esi
+    25 0000000E BB00000000              	mov ebx, 0
+    26 00000013 50                      	push eax
+    27 00000014 E8(00000000)            	call outputNumber
+    28 00000019 83C404                  	add esp, 4
+    29                                  
+    30 0000001C EB00                    	jmp _end
+    31                                  	
+    32                                  _end:
+    33 0000001E E8(00000000)            	call finish
