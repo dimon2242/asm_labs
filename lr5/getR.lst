@@ -1,0 +1,75 @@
+     1                                  
+     2                                  getR:
+     3                                  	global inputNumber
+     4                                  
+     5                                  EXTERN getChar
+     6                                  EXTERN finish
+     7                                  EXTERN putChar
+     8                                  
+     9                                  section .data
+    10 00000000 4552524F52              	err_msg db "ERROR"
+    11                                  	len equ $-err_msg
+    12                                  
+    13                                  inputNumber:
+    14 00000005 55                      	push ebp
+    15 00000006 89E5                    	mov ebp, esp
+    16 00000008 83EC08                  	sub esp, 8
+    17                                  
+    18 0000000B 53                      	push ebx
+    19 0000000C 51                      	push ecx
+    20 0000000D 52                      	push edx
+    21 0000000E 9C                      	pushfd
+    22                                  
+    23 0000000F BA00000000              	mov edx, 0
+    24 00000014 B90A000000              	mov ecx, 10
+    25 00000019 BB00000000              	mov ebx, 0
+    26 0000001E B800000000              	mov eax, 0
+    27                                  
+    28 00000023 C645F801                	mov byte [ebp-8], 1 ; Для положительного числа (смещение 8) для второй локальной var.
+    29                                  
+    30                                  .while:
+    31                                  
+    32 00000027 E8(00000000)            	call getChar
+    33                                  
+    34 0000002C 83F80A                  	cmp eax, 10
+    35 0000002F 742C                    	je .return
+    36 00000031 83F820                  	cmp eax, " "
+    37 00000034 7427                    	je .return
+    38 00000036 83F82D                  	cmp eax, "-"
+    39 00000039 7506                    	jnz .afterNegative
+    40 0000003B C645F8FF                	mov byte [ebp-8], -1 ; Для отрицательного числа
+    41 0000003F EB1C                    	jmp .return
+    42                                  .afterNegative
+    43 00000041 83F830                  	cmp eax, '0'
+    44 00000044 7C22                    	jl .err
+    45 00000046 83F839                  	cmp eax, '9'
+    46 00000049 7F1D                    	jg .err
+    47 0000004B 89C3                    	mov ebx, eax
+    48 0000004D 83EB30                  	sub ebx, '0'
+    49 00000050 89D0                    	mov eax, edx
+    50 00000052 F7E1                    	mul ecx
+    51 00000054 89C2                    	mov edx, eax
+    52 00000056 01DA                    	add edx, ebx
+    53 00000058 8955FC                  	mov [ebp-4], edx
+    54 0000005B EBCA                    	jmp .while
+    55                                  	
+    56                                  .return:
+    57 0000005D 8B45FC                  	mov eax, [ebp-4]
+    58                                  
+    59 00000060 9D                      	popfd
+    60 00000061 5A                      	pop edx
+    61 00000062 59                      	pop ecx
+    62 00000063 5B                      	pop ebx
+    63                                  
+    64 00000064 89EC                    	mov esp, ebp
+    65 00000066 5D                      	pop ebp
+    66                                  	
+    67 00000067 C3                      	ret
+    68                                  
+    69                                  .err:
+    70 00000068 B804000000              	mov eax, 4
+    71 0000006D BB01000000              	mov ebx, 1
+    72 00000072 B9[00000000]            	mov ecx, err_msg
+    73 00000077 BA05000000              	mov edx, len
+    74 0000007C CD80                    	int 80h
+    75 0000007E E8(00000000)            	call finish
