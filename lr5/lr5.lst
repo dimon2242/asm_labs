@@ -5,22 +5,42 @@
      5                                  EXTERN putChar
      6                                  EXTERN outputNumber
      7                                  EXTERN inputNumber
-     8                                  
-     9                                  global _start
+     8                                  EXTERN calc
+     9                                  ;EXTERN getR
     10                                  
-    11                                  section .text
-    12                                  _start:
-    13                                  	
-    14 00000000 E8(00000000)            	call inputNumber
-    15 00000005 89C6                    	mov esi, eax
-    16 00000007 E8(00000000)            	call inputNumber
-    17 0000000C 01F0                    	add eax, esi
-    18 0000000E BB00000000              	mov ebx, 0
-    19 00000013 50                      	push eax
-    20 00000014 E8(00000000)            	call outputNumber
-    21 00000019 83C404                  	add esp, 4
-    22                                  
-    23 0000001C EB00                    	jmp _end
-    24                                  	
-    25                                  _end:
-    26 0000001E E8(00000000)            	call finish
+    11                                  global _start
+    12                                  
+    13                                  section .data
+    14 00000000 2D01                    	minus db "-", 1
+    15                                  
+    16                                  section .text
+    17                                  _start:
+    18 00000000 E8(00000000)            	call inputNumber
+    19 00000005 50                      	push eax
+    20 00000006 E8(00000000)            	call inputNumber
+    21 0000000B 50                      	push eax
+    22 0000000C E8(00000000)            	call inputNumber
+    23 00000011 50                      	push eax
+    24                                  	;mov esi, eax
+    25                                  	;mov ebx, 0
+    26                                  	;push eax
+    27 00000012 E8(00000000)            	call calc
+    28 00000017 83C40C                  	add esp, 12
+    29 0000001A A980000000              	test eax, 80h
+    30 0000001F 740F                    	jz .positive
+    31 00000021 F7D8                    	neg eax
+    32                                  
+    33 00000023 68[00000000]            	push minus
+    34 00000028 E8(00000000)            	call putChar
+    35                                  
+    36 0000002D 83C404                  	add esp, 4
+    37                                  
+    38                                  .positive:
+    39 00000030 50                      	push eax
+    40 00000031 E8(00000000)            	call outputNumber
+    41 00000036 83C404                  	add esp, 4
+    42                                  
+    43 00000039 EB00                    	jmp short _end
+    44                                  	
+    45                                  _end:
+    46 0000003B E8(00000000)            	call finish

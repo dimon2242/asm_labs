@@ -16,35 +16,27 @@ outputNumber:
 	mov esi, ebp
 
 .while:
-	mov edx, 0
+	xor edx, edx
+	;mov edx, 0 ; replaced
 	div ecx
 	dec esi
 	mov [esi], dl
-	cmp eax, 0
-	je .print
+	;cmp eax, 0 ; replaced
+	test eax, eax
+	je short .print
 	
-	jmp .while
+	jmp short .while
 
 .print:
 	cmp esi, ebp
 	je .return
 	add [esi], byte '0'
-	;PUTCHAR byte [esi]
-	;push dword [esi]
-	;call outputNum
-	;add esp, 4
-
-	;mov eax, 4
-	;mov ebx, 1
-	;mov ecx, esi
-	;mov edx, 1
-	;int 80h
 	push esi
 	call putChar
 	add esp, 4
 
 	inc esi
-	jmp .print
+	jmp short .print
 
 .return:
 	popfd

@@ -1,0 +1,57 @@
+     1                                  global outputNumber
+     2                                  
+     3                                  EXTERN putChar
+     4                                  
+     5                                  outputNumber:
+     6 00000000 55                      	push ebp
+     7 00000001 89E5                    	mov ebp, esp
+     8 00000003 83EC08                  	sub esp, 8
+     9                                  	
+    10 00000006 60                      	pushad
+    11 00000007 9C                      	pushfd
+    12                                  
+    13 00000008 B90A000000              	mov ecx, 10
+    14                                  
+    15 0000000D 8B4508                  	mov eax, [ebp+8]
+    16 00000010 89EE                    	mov esi, ebp
+    17                                  
+    18                                  .while:
+    19 00000012 31D2                    	xor edx, edx
+    20                                  	;mov edx, 0 ; replaced
+    21 00000014 F7F1                    	div ecx
+    22 00000016 4E                      	dec esi
+    23 00000017 8816                    	mov [esi], dl
+    24                                  	;cmp eax, 0 ; replaced
+    25 00000019 85C0                    	test eax, eax
+    26 0000001B 7402                    	je short .print
+    27                                  	
+    28 0000001D EBF3                    	jmp short .while
+    29                                  
+    30                                  .print:
+    31 0000001F 39EE                    	cmp esi, ebp
+    32 00000021 740F                    	je .return
+    33 00000023 800630                  	add [esi], byte '0'
+    34                                  	;PUTCHAR byte [esi]
+    35                                  	;push dword [esi]
+    36                                  	;call outputNum
+    37                                  	;add esp, 4
+    38                                  
+    39                                  	;mov eax, 4
+    40                                  	;mov ebx, 1
+    41                                  	;mov ecx, esi
+    42                                  	;mov edx, 1
+    43                                  	;int 80h
+    44 00000026 56                      	push esi
+    45 00000027 E8(00000000)            	call putChar
+    46 0000002C 83C404                  	add esp, 4
+    47                                  
+    48 0000002F 46                      	inc esi
+    49 00000030 EBED                    	jmp short .print
+    50                                  
+    51                                  .return:
+    52 00000032 9D                      	popfd
+    53 00000033 61                      	popad
+    54                                  
+    55 00000034 89EC                    	mov esp, ebp
+    56 00000036 5D                      	pop ebp
+    57 00000037 C3                      	ret

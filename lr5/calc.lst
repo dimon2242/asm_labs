@@ -1,0 +1,80 @@
+     1                                  GLOBAL calc
+     2                                  
+     3                                  calc:
+     4 00000000 55                      	push ebp
+     5 00000001 89E5                    	mov ebp, esp
+     6 00000003 83EC0E                  	sub esp, 14 ; 1) Disctiminant; 2) first root; 3) second root; 4) other :)
+     7                                  
+     8 00000006 60                      	pushad
+     9 00000007 9C                      	pushfd
+    10                                  
+    11 00000008 C645F204                	mov byte [ebp-14], 4
+    12                                  
+    13 0000000C 9BDBE3                  	finit
+    14                                  
+    15 0000000F DB450C                  	fild dword [ebp+12] ; b
+    16 00000012 D8C8                    	fmul st0
+    17 00000014 DB45F2                  	fild dword [ebp-14]
+    18 00000017 DB4508                  	fild dword [ebp+8] ; c
+    19 0000001A DEC9                    	fmulp st1
+    20 0000001C DB4510                  	fild dword [ebp+16] ; a
+    21 0000001F DEC9                    	fmulp st1
+    22 00000021 D8E9                    	fsubr st1
+    23                                  
+    24 00000023 D9FA                    	fsqrt
+    25                                  
+    26 00000025 C645F202                	mov byte [ebp-14], 2
+    27 00000029 DB450C                  	fild dword [ebp+12] ; b
+    28 0000002C D8E1                    	fsub st1
+    29 0000002E DF45F2                  	fild word [ebp-14] ; 2
+    30 00000031 DB4510                  	fild dword [ebp+16] ; a
+    31 00000034 D8C9                    	fmul st1
+    32 00000036 D9C9                    	fxch st1
+    33 00000038 D9CA                    	fxch st2
+    34 0000003A DEF1                    	fdivrp st1
+    35                                  	;; st(2) is discriminant
+    36                                  
+    37 0000003C D9CA                    	fxch st2
+    38                                  
+    39 0000003E C645F202                	mov byte [ebp-14], 2
+    40 00000042 DB450C                  	fild dword [ebp+12] ; b
+    41 00000045 D8C1                    	fadd st1
+    42                                  	;fild word [ebp-14] ; 2
+    43 00000047 DB4510                  	fild dword [ebp+16] ; a
+    44 0000004A D8CB                    	fmul st3
+    45 0000004C D9C9                    	fxch st1
+    46                                  	;fxch st2
+    47 0000004E DEF1                    	fdivrp st1
+    48                                  
+    49 00000050 D9C9                    	fxch st1
+    50 00000052 D9CB                    	fxch st3
+    51                                  	
+    52                                  	;fsubrp st1
+    53                                  	;;;;;
+    54                                  	;fild word [ebp-14] ; тут беда
+    55                                  	;fild dword [ebp+12]
+    56                                  	;fild dword [ebp+16]
+    57                                  
+    58                                  	;fmul st2
+    59                                  	;fxch st1
+    60                                  
+    61                                  	;fadd st3
+    62                                  	;fdiv st1
+    63                                  
+    64                                  	;fxch st1
+    65                                  	;fxch st4
+    66                                  	;;;;;
+    67                                  
+    68 00000054 9D                      	popfd
+    69 00000055 61                      	popad
+    70                                  
+    71 00000056 D9C9                    	fxch st1
+    72 00000058 DB5DF8                  	fistp dword [ebp-8]
+    73                                  
+    74                                  	;fist dword [ebp-8]
+    75 0000005B 8B45F8                  	mov eax, [ebp-8]
+    76 0000005E F7D8                    	neg eax
+    77                                  
+    78 00000060 89EC                    	mov esp, ebp
+    79 00000062 5D                      	pop ebp
+    80 00000063 C3                      	ret
