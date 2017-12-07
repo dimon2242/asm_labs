@@ -5,42 +5,115 @@
      5                                  EXTERN putChar
      6                                  EXTERN outputNumber
      7                                  EXTERN inputNumber
-     8                                  EXTERN calc
+     8                                  ;EXTERN calc
      9                                  ;EXTERN getR
     10                                  
     11                                  global _start
     12                                  
-    13                                  section .data
-    14 00000000 2D01                    	minus db "-", 1
-    15                                  
-    16                                  section .text
-    17                                  _start:
-    18 00000000 E8(00000000)            	call inputNumber
-    19 00000005 50                      	push eax
-    20 00000006 E8(00000000)            	call inputNumber
-    21 0000000B 50                      	push eax
-    22 0000000C E8(00000000)            	call inputNumber
-    23 00000011 50                      	push eax
-    24                                  	;mov esi, eax
-    25                                  	;mov ebx, 0
-    26                                  	;push eax
-    27 00000012 E8(00000000)            	call calc
-    28 00000017 83C40C                  	add esp, 12
-    29 0000001A A980000000              	test eax, 80h
-    30 0000001F 740F                    	jz .positive
-    31 00000021 F7D8                    	neg eax
-    32                                  
-    33 00000023 68[00000000]            	push minus
-    34 00000028 E8(00000000)            	call putChar
-    35                                  
-    36 0000002D 83C404                  	add esp, 4
-    37                                  
-    38                                  .positive:
-    39 00000030 50                      	push eax
-    40 00000031 E8(00000000)            	call outputNumber
-    41 00000036 83C404                  	add esp, 4
-    42                                  
-    43 00000039 EB00                    	jmp short _end
-    44                                  	
-    45                                  _end:
-    46 0000003B E8(00000000)            	call finish
+    13                                  section .bss
+    14 00000000 <res 00000004>          	a resd 1
+    15 00000004 <res 00000004>          	b resd 1
+    16 00000008 <res 00000004>          	c resd 1
+    17 0000000C <res 00000004>          	disc resd 1
+    18 00000010 <res 00000002>          	mult resw 1
+    19 00000012 <res 00000004>          	result resd 1
+    20 00000016 <res 00000004>          	sign resd 1
+    21                                  
+    22                                  section .data
+    23 00000000 2D01                    	minus db "-", 1
+    24                                  
+    25                                  section .text
+    26                                  _start:
+    27 00000000 C705[16000000]FFFF-     	mov dword [sign], -1
+    28 00000008 FFFF               
+    29 0000000A E8(00000000)            	call inputNumber
+    30                                  	;push eax
+    31 0000000F A3[00000000]            	mov [a], eax
+    32 00000014 E8(00000000)            	call inputNumber
+    33                                  	;push eax
+    34 00000019 A3[04000000]            	mov [b], eax
+    35 0000001E E8(00000000)            	call inputNumber
+    36                                  	;push eax
+    37 00000023 A3[08000000]            	mov [c], eax
+    38 00000028 66C705[10000000]04-     	mov word [mult], 4
+    39 00000030 00                 
+    40                                  
+    41                                  	;push dword [a]
+    42                                  	;push dword [b]
+    43                                  	;push dword [c]
+    44                                  
+    45                                  
+    46                                  	;;;;;;;;;;;;;;;;
+    47                                  	;mov byte [ebp-14], 4
+    48                                  
+    49 00000031 9BDBE3                  	finit
+    50                                  	;;; Discriminant
+    51 00000034 DB05[04000000]          	fild dword [b]
+    52 0000003A D8C8                    	fmul st0
+    53 0000003C DF05[10000000]          	fild word [mult]
+    54 00000042 DB05[00000000]          	fild dword [a]
+    55 00000048 DEC9                    	fmulp st1
+    56 0000004A DB05[08000000]          	fild dword [c]
+    57 00000050 DEC9                    	fmulp st1
+    58 00000052 D8E9                    	fsubr st1
+    59                                  
+    60                                  	;fist dword [disc]
+    61                                  
+    62 00000054 D9FA                    	fsqrt
+    63                                  
+    64                                  	;;; End discriminant
+    65                                  	;;; Start Roots
+    66                                  	;;; First root
+    67 00000056 DB05[04000000]          	fild dword [b]
+    68 0000005C D8E1                    	fsub st1
+    69 0000005E 66C705[10000000]02-     	mov word [mult], 2
+    70 00000066 00                 
+    71 00000067 DF05[10000000]          	fild word [mult]
+    72 0000006D DB05[00000000]          	fild dword [a]
+    73 00000073 DEC9                    	fmulp st1
+    74 00000075 DEF1                    	fdivrp st1
+    75 00000077 D9C9                    	fxch st1
+    76                                  	;;; End first root
+    77                                  	;;; Second root
+    78 00000079 DB05[04000000]          	fild dword [b]
+    79 0000007F DEC1                    	faddp st1
+    80 00000081 DF05[10000000]          	fild word [mult]
+    81 00000087 DB05[00000000]          	fild dword [a]
+    82 0000008D DEC9                    	fmulp st1
+    83 0000008F DEF1                    	fdivrp st1
+    84 00000091 D9C9                    	fxch st1
+    85 00000093 DB15[12000000]          	fist dword [result]
+    86                                  
+    87                                  	
+    88                                  	;;;;;;;;;;;;;;;;;;;
+    89                                  
+    90                                  
+    91                                  	;mov eax, [b]
+    92 00000099 A1[12000000]            	mov eax, [result]
+    93 0000009E F72D[16000000]          	imul dword [sign]
+    94                                  
+    95 000000A4 85C0                    	test eax, eax
+    96 000000A6 7913                    	jns .positive
+    97                                  
+    98 000000A8 F7D8                    	neg eax
+    99                                  
+   100 000000AA 68[00000000]            	push minus
+   101 000000AF E8(00000000)            	call putChar
+   102                                  
+   103 000000B4 83C404                  	add esp, 4
+   104 000000B7 EB02                    	jmp short .positive
+   105                                  
+   106                                  .noSolution:
+   107 000000B9 EB0B                    	jmp short _end
+   108                                  
+   109                                  .positive:
+   110                                  	;mov eax, [b]
+   111                                  	;neg eax
+   112 000000BB 50                      	push eax
+   113 000000BC E8(00000000)            	call outputNumber
+   114 000000C1 83C404                  	add esp, 4
+   115                                  
+   116 000000C4 EB00                    	jmp short _end
+   117                                  	
+   118                                  _end:
+   119 000000C6 E8(00000000)            	call finish

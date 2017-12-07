@@ -36,34 +36,15 @@ calc:
 
 	fxch st2
 
-	mov byte [ebp-14], 2
 	fild dword [ebp+12] ; b
 	fadd st1
-	;fild word [ebp-14] ; 2
 	fild dword [ebp+16] ; a
 	fmul st3
 	fxch st1
-	;fxch st2
 	fdivrp st1
 
 	fxch st1
 	fxch st3
-	
-	;fsubrp st1
-	;;;;;
-	;fild word [ebp-14] ; тут беда
-	;fild dword [ebp+12]
-	;fild dword [ebp+16]
-
-	;fmul st2
-	;fxch st1
-
-	;fadd st3
-	;fdiv st1
-
-	;fxch st1
-	;fxch st4
-	;;;;;
 
 	popfd
 	popad

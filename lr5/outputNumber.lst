@@ -31,27 +31,17 @@
     31 0000001F 39EE                    	cmp esi, ebp
     32 00000021 740F                    	je .return
     33 00000023 800630                  	add [esi], byte '0'
-    34                                  	;PUTCHAR byte [esi]
-    35                                  	;push dword [esi]
-    36                                  	;call outputNum
-    37                                  	;add esp, 4
-    38                                  
-    39                                  	;mov eax, 4
-    40                                  	;mov ebx, 1
-    41                                  	;mov ecx, esi
-    42                                  	;mov edx, 1
-    43                                  	;int 80h
-    44 00000026 56                      	push esi
-    45 00000027 E8(00000000)            	call putChar
-    46 0000002C 83C404                  	add esp, 4
-    47                                  
-    48 0000002F 46                      	inc esi
-    49 00000030 EBED                    	jmp short .print
-    50                                  
-    51                                  .return:
-    52 00000032 9D                      	popfd
-    53 00000033 61                      	popad
-    54                                  
-    55 00000034 89EC                    	mov esp, ebp
-    56 00000036 5D                      	pop ebp
-    57 00000037 C3                      	ret
+    34 00000026 56                      	push esi
+    35 00000027 E8(00000000)            	call putChar
+    36 0000002C 83C404                  	add esp, 4
+    37                                  
+    38 0000002F 46                      	inc esi
+    39 00000030 EBED                    	jmp short .print
+    40                                  
+    41                                  .return:
+    42 00000032 9D                      	popfd
+    43 00000033 61                      	popad
+    44                                  
+    45 00000034 89EC                    	mov esp, ebp
+    46 00000036 5D                      	pop ebp
+    47 00000037 C3                      	ret

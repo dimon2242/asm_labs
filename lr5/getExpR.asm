@@ -1,5 +1,4 @@
-
-GLOBAL inputNumber
+GLOBAL inputReal
 
 EXTERN getChar
 EXTERN finish
@@ -7,13 +6,13 @@ EXTERN outputNumber
 
 section .data
 	err_msg db "ERROR"
-	len equ $-err_msg ;;;;;; Предыдущий минус мешает последующим вычислениям?
+	len equ $-err_msg
 
-inputNumber:
+inputReal:
 	push ebp
 	mov ebp, esp
-	sub esp, 16 ; 1) знак; 2) порядок с десяткой; 3) целая часть; 4) дробная часть;
-
+	sub esp, 16 ;4) знак; 8) порядок с десяткой; 12) целая часть; 16) дробная часть;
+	
 	push ebx
 	push ecx
 	push edx
@@ -25,27 +24,23 @@ inputNumber:
 	xor ebx, ebx
 	xor eax, eax
 
-	mov dword [ebp-8], 10
-
-	mov dword [ebp-4], 1 ; Для положительного числа (смещение 4)
+	mov byte [ebp-8], 10
+	mov byte [ebp-4], 1
 
 .while:
-
 	call getChar
-
 	cmp eax, 10
 	je .return
-	cmp eax, " "
+	cmp eax, ' '
 	je .return
-	cmp eax, "-"
-	jnz short .afterNegative
-	;mov byte [ebp-4], 1 ; Для отрицательного числа
+	cmp eax, '-'
+	jnz short .afterNeg
 	neg dword [ebp-4]
 	jmp .while
 
-.afterNegative:
-	cmp eax, "."
-	jz .frac ; Если дошли до точки
+.afterNeg:
+	cmp eax, '.'
+	jz .frac
 	cmp eax, '0'
 	jl .err
 	cmp eax, '9'
@@ -56,19 +51,15 @@ inputNumber:
 	mul ecx
 	mov edx, eax
 	add edx, ebx
-	;mov [ebp-4], edx
-	;sub edx, '0'
 	mov [ebp-12], edx
 	jmp .while
 
 .frac:
-	;xor ecx, ecx
 	xor esi, esi
-	xor edx, edx
 	xor ebx, ebx
+	xor eax, eax
+	xor edx, edx
 .whileFrac:
-	;push ecx
-	;mov ecx, 0
 	call getChar
 	cmp eax, 10
 	je .prepareFrac
@@ -79,27 +70,23 @@ inputNumber:
 	cmp eax, '9'
 	jg .err
 	inc esi
-
 	mov ebx, eax
 	sub ebx, '0'
 	mov eax, edx
 	mul ecx
 	mov edx, eax
 	add edx, ebx
-
-	;sub eax, '0'
-	;mov [ebp-16], eax ; первая локальная переменная
-	mov [ebp-16], edx ; первая локальная переменная
-
+	mov [ebp-16], edx
 	jmp .whileFrac
 
 .prepareFrac:
 	finit
+	fild dword [ebp-4]
 	fild dword [ebp-8]
 	fild dword [ebp-12]
 	fild dword [ebp-16]
+
 .whileLoc:
-	
 	test esi, esi
 	jz .endDiv
 
@@ -109,20 +96,18 @@ inputNumber:
 
 .endDiv:
 	fadd st1
+	fmulp st3
 	fist dword [ebp-12]
-	;add al, byte [ebp-4] ; ????
 	jmp .fracEnd
 
 .return:
 .end:
-	;mov eax, [ebp-12]
-	;mov [ebp-12], eax
-.fracEnd:
 	mov eax, [ebp-12]
-	imul dword [ebp-4]
-	;mov dword [ebp-4], 1
-
-	popfd
+	mul dword [ebp-4]
+	mov [ebp-12], eax
+.fracEnd:
+ 	mov eax, [ebp-12]
+ 	popfd
 	pop esi
 	pop edx
 	pop ecx
@@ -132,7 +117,6 @@ inputNumber:
 	pop ebp
 	
 	ret
-
 .err:
 	mov eax, 4
 	mov ebx, 1

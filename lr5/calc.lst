@@ -36,45 +36,26 @@
     36                                  
     37 0000003C D9CA                    	fxch st2
     38                                  
-    39 0000003E C645F202                	mov byte [ebp-14], 2
-    40 00000042 DB450C                  	fild dword [ebp+12] ; b
-    41 00000045 D8C1                    	fadd st1
-    42                                  	;fild word [ebp-14] ; 2
-    43 00000047 DB4510                  	fild dword [ebp+16] ; a
-    44 0000004A D8CB                    	fmul st3
-    45 0000004C D9C9                    	fxch st1
-    46                                  	;fxch st2
-    47 0000004E DEF1                    	fdivrp st1
+    39 0000003E DB450C                  	fild dword [ebp+12] ; b
+    40 00000041 D8C1                    	fadd st1
+    41 00000043 DB4510                  	fild dword [ebp+16] ; a
+    42 00000046 D8CB                    	fmul st3
+    43 00000048 D9C9                    	fxch st1
+    44 0000004A DEF1                    	fdivrp st1
+    45                                  
+    46 0000004C D9C9                    	fxch st1
+    47 0000004E D9CB                    	fxch st3
     48                                  
-    49 00000050 D9C9                    	fxch st1
-    50 00000052 D9CB                    	fxch st3
-    51                                  	
-    52                                  	;fsubrp st1
-    53                                  	;;;;;
-    54                                  	;fild word [ebp-14] ; тут беда
-    55                                  	;fild dword [ebp+12]
-    56                                  	;fild dword [ebp+16]
-    57                                  
-    58                                  	;fmul st2
-    59                                  	;fxch st1
-    60                                  
-    61                                  	;fadd st3
-    62                                  	;fdiv st1
-    63                                  
-    64                                  	;fxch st1
-    65                                  	;fxch st4
-    66                                  	;;;;;
-    67                                  
-    68 00000054 9D                      	popfd
-    69 00000055 61                      	popad
-    70                                  
-    71 00000056 D9C9                    	fxch st1
-    72 00000058 DB5DF8                  	fistp dword [ebp-8]
-    73                                  
-    74                                  	;fist dword [ebp-8]
-    75 0000005B 8B45F8                  	mov eax, [ebp-8]
-    76 0000005E F7D8                    	neg eax
-    77                                  
-    78 00000060 89EC                    	mov esp, ebp
-    79 00000062 5D                      	pop ebp
-    80 00000063 C3                      	ret
+    49 00000050 9D                      	popfd
+    50 00000051 61                      	popad
+    51                                  
+    52 00000052 D9C9                    	fxch st1
+    53 00000054 DB5DF8                  	fistp dword [ebp-8]
+    54                                  
+    55                                  	;fist dword [ebp-8]
+    56 00000057 8B45F8                  	mov eax, [ebp-8]
+    57 0000005A F7D8                    	neg eax
+    58                                  
+    59 0000005C 89EC                    	mov esp, ebp
+    60 0000005E 5D                      	pop ebp
+    61 0000005F C3                      	ret

@@ -7,7 +7,7 @@
      7                                  
      8                                  section .data
      9 00000000 4552524F52              	err_msg db "ERROR"
-    10                                  	len equ $-err_msg
+    10                                  	len equ $-err_msg ;;;;;; Предыдущий минус мешает последующим вычислениям?
     11                                  
     12                                  inputNumber:
     13 00000005 55                      	push ebp
@@ -17,106 +17,126 @@
     17 0000000B 53                      	push ebx
     18 0000000C 51                      	push ecx
     19 0000000D 52                      	push edx
-    20 0000000E 9C                      	pushfd
-    21                                  
-    22 0000000F 31D2                    	xor edx, edx
-    23 00000011 B90A000000              	mov ecx, 10
-    24 00000016 31DB                    	xor ebx, ebx
-    25 00000018 31C0                    	xor eax, eax
-    26                                  
-    27 0000001A C645F80A                	mov byte [ebp-8], 10
-    28                                  
-    29 0000001E C645FC01                	mov byte [ebp-4], 1 ; Для положительного числа (смещение 4)
-    30                                  
-    31                                  .while:
-    32                                  
-    33 00000022 E8(00000000)            	call getChar
-    34                                  
-    35 00000027 83F80A                  	cmp eax, 10
-    36 0000002A 746F                    	je .return
-    37 0000002C 83F820                  	cmp eax, " "
-    38 0000002F 746A                    	je .return
-    39 00000031 83F82D                  	cmp eax, "-"
-    40 00000034 7506                    	jnz .afterNegative
-    41 00000036 C645FCFF                	mov byte [ebp-4], -1 ; Для отрицательного числа
-    42 0000003A EBE6                    	jmp .while
-    43                                  .afterNegative:
-    44 0000003C 83F82E                  	cmp eax, "."
-    45 0000003F 741C                    	jz .frac ; Если дошли до точки
-    46 00000041 83F830                  	cmp eax, '0'
-    47 00000044 7C60                    	jl .err
-    48 00000046 83F839                  	cmp eax, '9'
-    49 00000049 7F5B                    	jg .err
-    50 0000004B 89C3                    	mov ebx, eax
-    51 0000004D 83EB30                  	sub ebx, '0'
-    52 00000050 89D0                    	mov eax, edx
-    53 00000052 F7E1                    	mul ecx
-    54 00000054 89C2                    	mov edx, eax
-    55 00000056 01DA                    	add edx, ebx
-    56                                  	;mov [ebp-4], edx
-    57                                  	;sub edx, '0'
-    58 00000058 8955F4                  	mov [ebp-12], edx
-    59 0000005B EBC5                    	jmp .while
-    60                                  
-    61                                  .frac:
-    62 0000005D 31C9                    	xor ecx, ecx
-    63                                  .whileFrac:
-    64                                  	;push ecx
-    65                                  	;mov ecx, 0
-    66 0000005F E8(00000000)            	call getChar
-    67 00000064 83F80A                  	cmp eax, 10
-    68 00000067 7418                    	je .prepareFrac
-    69 00000069 83F820                  	cmp eax, " "
-    70 0000006C 7413                    	je .prepareFrac
-    71 0000006E 83F830                  	cmp eax, '0'
-    72 00000071 7C33                    	jl .err
-    73 00000073 83F839                  	cmp eax, '9'
-    74 00000076 7F2E                    	jg .err
-    75 00000078 41                      	inc ecx
-    76                                  	;mul [ebp-16]
-    77                                  	;add [ebp-20], eax
-    78 00000079 83E830                  	sub eax, '0'
-    79 0000007C 8945F0                  	mov [ebp-16], eax ; первая локальная переменная
-    80 0000007F EBDE                    	jmp .whileFrac
-    81                                  
-    82                                  .prepareFrac:
-    83 00000081 9BDBE3                  	finit
-    84 00000084 DB45F8                  	fild dword [ebp-8]
-    85 00000087 DB45F4                  	fild dword [ebp-12]
-    86 0000008A DB45F0                  	fild dword [ebp-16]
-    87                                  .whileLoc:
-    88                                  	
-    89 0000008D 85C9                    	test ecx, ecx
-    90 0000008F 7405                    	jz .endDiv
-    91                                  
-    92 00000091 D8F2                    	fdiv st2
-    93 00000093 49                      	dec ecx
-    94 00000094 EBF7                    	jmp .whileLoc
+    20 0000000E 56                      	push esi
+    21 0000000F 9C                      	pushfd
+    22                                  
+    23 00000010 31D2                    	xor edx, edx
+    24 00000012 B90A000000              	mov ecx, 10
+    25 00000017 31DB                    	xor ebx, ebx
+    26 00000019 31C0                    	xor eax, eax
+    27                                  
+    28 0000001B C745F80A000000          	mov dword [ebp-8], 10
+    29                                  
+    30 00000022 C745FC01000000          	mov dword [ebp-4], 1 ; Для положительного числа (смещение 4)
+    31                                  
+    32                                  .while:
+    33                                  
+    34 00000029 E8(00000000)            	call getChar
+    35                                  
+    36 0000002E 83F80A                  	cmp eax, 10
+    37 00000031 747E                    	je .return
+    38 00000033 83F820                  	cmp eax, " "
+    39 00000036 7479                    	je .return
+    40 00000038 83F82D                  	cmp eax, "-"
+    41 0000003B 7505                    	jnz short .afterNegative
+    42                                  	;mov byte [ebp-4], 1 ; Для отрицательного числа
+    43 0000003D F75DFC                  	neg dword [ebp-4]
+    44 00000040 EBE7                    	jmp .while
+    45                                  
+    46                                  .afterNegative:
+    47 00000042 83F82E                  	cmp eax, "."
+    48 00000045 741C                    	jz .frac ; Если дошли до точки
+    49 00000047 83F830                  	cmp eax, '0'
+    50 0000004A 7C74                    	jl .err
+    51 0000004C 83F839                  	cmp eax, '9'
+    52 0000004F 7F6F                    	jg .err
+    53 00000051 89C3                    	mov ebx, eax
+    54 00000053 83EB30                  	sub ebx, '0'
+    55 00000056 89D0                    	mov eax, edx
+    56 00000058 F7E1                    	mul ecx
+    57 0000005A 89C2                    	mov edx, eax
+    58 0000005C 01DA                    	add edx, ebx
+    59                                  	;mov [ebp-4], edx
+    60                                  	;sub edx, '0'
+    61 0000005E 8955F4                  	mov [ebp-12], edx
+    62 00000061 EBC6                    	jmp .while
+    63                                  
+    64                                  .frac:
+    65                                  	;xor ecx, ecx
+    66 00000063 31F6                    	xor esi, esi
+    67 00000065 31D2                    	xor edx, edx
+    68 00000067 31DB                    	xor ebx, ebx
+    69                                  .whileFrac:
+    70                                  	;push ecx
+    71                                  	;mov ecx, 0
+    72 00000069 E8(00000000)            	call getChar
+    73 0000006E 83F80A                  	cmp eax, 10
+    74 00000071 7422                    	je .prepareFrac
+    75 00000073 83F820                  	cmp eax, " "
+    76 00000076 741D                    	je .prepareFrac
+    77 00000078 83F830                  	cmp eax, '0'
+    78 0000007B 7C43                    	jl .err
+    79 0000007D 83F839                  	cmp eax, '9'
+    80 00000080 7F3E                    	jg .err
+    81 00000082 46                      	inc esi
+    82                                  
+    83 00000083 89C3                    	mov ebx, eax
+    84 00000085 83EB30                  	sub ebx, '0'
+    85 00000088 89D0                    	mov eax, edx
+    86 0000008A F7E1                    	mul ecx
+    87 0000008C 89C2                    	mov edx, eax
+    88 0000008E 01DA                    	add edx, ebx
+    89                                  
+    90                                  	;sub eax, '0'
+    91                                  	;mov [ebp-16], eax ; первая локальная переменная
+    92 00000090 8955F0                  	mov [ebp-16], edx ; первая локальная переменная
+    93                                  
+    94 00000093 EBD4                    	jmp .whileFrac
     95                                  
-    96                                  .endDiv:
-    97 00000096 D8C1                    	fadd st1
-    98 00000098 DB55F4                  	fist dword [ebp-12]
-    99                                  	;add al, byte [ebp-4] ; ????
-   100                                  
-   101                                  .return:
-   102                                  .end:
-   103 0000009B 8B45F4                  	mov eax, [ebp-12]
-   104                                  	;mul dword [ebp-4]
+    96                                  .prepareFrac:
+    97 00000095 9BDBE3                  	finit
+    98 00000098 DB45F8                  	fild dword [ebp-8]
+    99 0000009B DB45F4                  	fild dword [ebp-12]
+   100 0000009E DB45F0                  	fild dword [ebp-16]
+   101                                  .whileLoc:
+   102                                  	
+   103 000000A1 85F6                    	test esi, esi
+   104 000000A3 7405                    	jz .endDiv
    105                                  
-   106 0000009E 9D                      	popfd
-   107 0000009F 5A                      	pop edx
-   108 000000A0 59                      	pop ecx
-   109 000000A1 5B                      	pop ebx
-   110                                  
-   111 000000A2 89EC                    	mov esp, ebp
-   112 000000A4 5D                      	pop ebp
-   113                                  	
-   114 000000A5 C3                      	ret
+   106 000000A5 D8F2                    	fdiv st2
+   107 000000A7 4E                      	dec esi
+   108 000000A8 EBF7                    	jmp .whileLoc
+   109                                  
+   110                                  .endDiv:
+   111 000000AA D8C1                    	fadd st1
+   112 000000AC DB55F4                  	fist dword [ebp-12]
+   113                                  	;add al, byte [ebp-4] ; ????
+   114 000000AF EB00                    	jmp .fracEnd
    115                                  
-   116                                  .err:
-   117 000000A6 B804000000              	mov eax, 4
-   118 000000AB BB01000000              	mov ebx, 1
-   119 000000B0 B9[00000000]            	mov ecx, err_msg
-   120 000000B5 BA05000000              	mov edx, len
-   121 000000BA CD80                    	int 80h
-   122 000000BC E8(00000000)            	call finish
+   116                                  .return:
+   117                                  .end:
+   118                                  	;mov eax, [ebp-12]
+   119                                  	;mov [ebp-12], eax
+   120                                  .fracEnd:
+   121 000000B1 8B45F4                  	mov eax, [ebp-12]
+   122 000000B4 F76DFC                  	imul dword [ebp-4]
+   123                                  	;mov dword [ebp-4], 1
+   124                                  
+   125 000000B7 9D                      	popfd
+   126 000000B8 5E                      	pop esi
+   127 000000B9 5A                      	pop edx
+   128 000000BA 59                      	pop ecx
+   129 000000BB 5B                      	pop ebx
+   130                                  
+   131 000000BC 89EC                    	mov esp, ebp
+   132 000000BE 5D                      	pop ebp
+   133                                  	
+   134 000000BF C3                      	ret
+   135                                  
+   136                                  .err:
+   137 000000C0 B804000000              	mov eax, 4
+   138 000000C5 BB01000000              	mov ebx, 1
+   139 000000CA B9[00000000]            	mov ecx, err_msg
+   140 000000CF BA05000000              	mov edx, len
+   141 000000D4 CD80                    	int 80h
+   142 000000D6 E8(00000000)            	call finish
