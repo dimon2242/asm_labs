@@ -2,46 +2,57 @@
      2                                  
      3                                  EXTERN putChar
      4                                  
-     5                                  outputNumber:
-     6 00000000 55                      	push ebp
-     7 00000001 89E5                    	mov ebp, esp
-     8 00000003 83EC08                  	sub esp, 8
-     9                                  	
-    10 00000006 60                      	pushad
-    11 00000007 9C                      	pushfd
-    12                                  
-    13 00000008 B90A000000              	mov ecx, 10
-    14                                  
-    15 0000000D 8B4508                  	mov eax, [ebp+8]
-    16 00000010 89EE                    	mov esi, ebp
+     5                                  section .data
+     6 00000000 2D01                    	minus db "-", 1
+     7                                  
+     8                                  outputNumber:
+     9 00000002 55                      	push ebp
+    10 00000003 89E5                    	mov ebp, esp
+    11 00000005 83EC08                  	sub esp, 8
+    12                                  	
+    13 00000008 60                      	pushad
+    14 00000009 9C                      	pushfd
+    15                                  
+    16 0000000A B90A000000              	mov ecx, 10
     17                                  
-    18                                  .while:
-    19 00000012 31D2                    	xor edx, edx
-    20                                  	;mov edx, 0 ; replaced
-    21 00000014 F7F1                    	div ecx
-    22 00000016 4E                      	dec esi
-    23 00000017 8816                    	mov [esi], dl
-    24                                  	;cmp eax, 0 ; replaced
-    25 00000019 85C0                    	test eax, eax
-    26 0000001B 7402                    	je short .print
-    27                                  	
-    28 0000001D EBF3                    	jmp short .while
-    29                                  
-    30                                  .print:
-    31 0000001F 39EE                    	cmp esi, ebp
-    32 00000021 740F                    	je .return
-    33 00000023 800630                  	add [esi], byte '0'
-    34 00000026 56                      	push esi
-    35 00000027 E8(00000000)            	call putChar
-    36 0000002C 83C404                  	add esp, 4
-    37                                  
-    38 0000002F 46                      	inc esi
-    39 00000030 EBED                    	jmp short .print
+    18 0000000F 8B4508                  	mov eax, [ebp+8]
+    19 00000012 89EE                    	mov esi, ebp
+    20                                  
+    21 00000014 85C0                    	test eax, eax
+    22 00000016 7911                    	jns .while
+    23 00000018 F7D8                    	neg eax
+    24 0000001A 68[00000000]            	push minus
+    25 0000001F E8(00000000)            	call putChar
+    26 00000024 83C404                  	add esp, 4
+    27 00000027 EB00                    	jmp short .while
+    28                                  
+    29                                  .while:
+    30 00000029 31D2                    	xor edx, edx
+    31                                  	;mov edx, 0 ; replaced
+    32 0000002B F7F1                    	div ecx
+    33 0000002D 4E                      	dec esi
+    34 0000002E 8816                    	mov [esi], dl
+    35                                  	;cmp eax, 0 ; replaced
+    36 00000030 85C0                    	test eax, eax
+    37 00000032 7402                    	je short .print
+    38                                  	
+    39 00000034 EBF3                    	jmp short .while
     40                                  
-    41                                  .return:
-    42 00000032 9D                      	popfd
-    43 00000033 61                      	popad
-    44                                  
-    45 00000034 89EC                    	mov esp, ebp
-    46 00000036 5D                      	pop ebp
-    47 00000037 C3                      	ret
+    41                                  .print:
+    42 00000036 39EE                    	cmp esi, ebp
+    43 00000038 740F                    	je .return
+    44 0000003A 800630                  	add [esi], byte '0'
+    45 0000003D 56                      	push esi
+    46 0000003E E8(00000000)            	call putChar
+    47 00000043 83C404                  	add esp, 4
+    48                                  
+    49 00000046 46                      	inc esi
+    50 00000047 EBED                    	jmp short .print
+    51                                  
+    52                                  .return:
+    53 00000049 9D                      	popfd
+    54 0000004A 61                      	popad
+    55                                  
+    56 0000004B 89EC                    	mov esp, ebp
+    57 0000004D 5D                      	pop ebp
+    58 0000004E C3                      	ret

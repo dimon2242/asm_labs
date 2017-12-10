@@ -15,12 +15,14 @@ section .bss
 	b resd 1
 	c resd 1
 	disc resd 1
-	mult resw 1
+	buff resw 1
 	result resd 1
 	sign resd 1
+	rootbuf resq 1
 
 section .data
-	minus db "-", 1
+	err_msg db "No solutions", 12
+	len equ $-err_msg
 
 section .text
 _start:
@@ -34,7 +36,7 @@ _start:
 	call inputNumber
 	;push eax
 	mov [c], eax
-	mov word [mult], 4
+	mov word [buff], 4
 
 	;push dword [a]
 	;push dword [b]
@@ -48,14 +50,19 @@ _start:
 	;;; Discriminant
 	fild dword [b]
 	fmul st0
-	fild word [mult]
+	fild word [buff]
 	fild dword [a]
 	fmulp st1
 	fild dword [c]
 	fmulp st1
 	fsubr st1
 
-	;fist dword [disc]
+	fist dword [disc]
+	mov eax, [disc]
+
+	test eax, eax
+
+	jl short .noSolution
 
 	fsqrt
 
@@ -64,21 +71,29 @@ _start:
 	;;; First root
 	fild dword [b]
 	fsub st1
-	mov word [mult], 2
-	fild word [mult]
+	mov word [buff], 2
+	fild word [buff]
 	fild dword [a]
 	fmulp st1
-	fdivrp st1
+	fdivp st1
 	fxch st1
 	;;; End first root
 	;;; Second root
 	fild dword [b]
-	faddp st1
-	fild word [mult]
+	faddp
+	fild word [buff]
 	fild dword [a]
-	fmulp st1
-	fdivrp st1
-	fxch st1
+	fmulp
+	fdivp ; WTF?
+
+	mov word [buff], 0
+	fild word [buff]
+	fxch
+	fsubr st1
+	fxch st2
+	fsubp st1
+	;fxch st1
+
 	fist dword [result]
 	;;; |x1|
 	;;; |x2|
@@ -88,23 +103,30 @@ _start:
 
 	;mov eax, [b]
 	mov eax, [result]
-	imul dword [sign]
+	;imul dword [sign]
 
-	test eax, eax
-	jns .positive
+	jmp short .outNumber
 
-	neg eax
+	;test eax, eax
+	;jns .positive
 
-	push minus
-	call putChar
+	;neg eax
+	;push minus
+	;call putChar
 
-	add esp, 4
-	jmp short .positive
+	;add esp, 4
+	;jmp short .positive
 
 .noSolution:
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, err_msg
+	mov edx, len
+	int 80h
+	call finish
 	jmp short _end
 
-.positive:
+.outNumber:
 	;mov eax, [b]
 	;neg eax
 	push eax

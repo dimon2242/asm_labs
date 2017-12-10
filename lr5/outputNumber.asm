@@ -2,6 +2,9 @@ global outputNumber
 
 EXTERN putChar
 
+section .data
+	minus db "-", 1
+
 outputNumber:
 	push ebp
 	mov ebp, esp
@@ -14,6 +17,14 @@ outputNumber:
 
 	mov eax, [ebp+8]
 	mov esi, ebp
+
+	test eax, eax
+	jns .while
+	neg eax
+	push minus
+	call putChar
+	add esp, 4
+	jmp short .while
 
 .while:
 	xor edx, edx
