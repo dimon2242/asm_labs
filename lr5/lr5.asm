@@ -5,8 +5,6 @@ EXTERN finish
 EXTERN putChar
 EXTERN outputNumber
 EXTERN inputNumber
-;EXTERN calc
-;EXTERN getR
 
 global _start
 
@@ -17,36 +15,36 @@ section .bss
 	disc resd 1
 	buff resw 1
 	result resd 1
-	sign resd 1
-	rootbuf resq 1
+	;sign resd 1
+	;rootbuf resq 1
+	;hmm resd 1
 
 section .data
-	err_msg db "No solutions", 12
+	err_msg db "No solutions"
 	len equ $-err_msg
+	err_msg_no_qeq db "Not quadratic equal"
+	len_nqe equ $-err_msg_no_qeq
 
 section .text
 _start:
-	mov dword [sign], -1
 	call inputNumber
-	;push eax
 	mov [a], eax
 	call inputNumber
-	;push eax
 	mov [b], eax
 	call inputNumber
-	;push eax
 	mov [c], eax
 	mov word [buff], 4
 
-	;push dword [a]
-	;push dword [b]
-	;push dword [c]
-
-
-	;;;;;;;;;;;;;;;;
-	;mov byte [ebp-14], 4
+	;mov dword [hmm], 1000
 
 	finit
+	fild dword [a]
+	ftst
+	fstsw ax
+	sahf
+	je near .notQEq
+	ffree
+
 	;;; Discriminant
 	fild dword [b]
 	fmul st0
@@ -61,8 +59,7 @@ _start:
 	mov eax, [disc]
 
 	test eax, eax
-
-	jl short .noSolution
+	jl near .noSolution
 
 	fsqrt
 
@@ -76,7 +73,16 @@ _start:
 	fild dword [a]
 	fmulp st1
 	fdivp st1
+	;fild dword [hmm]
+	;fmulp
+	;fistp dword [result]
+	;fild dword [result]
+	;fild dword [hmm]
+	;fdivp
+
+
 	fxch st1
+
 	;;; End first root
 	;;; Second root
 	fild dword [b]
@@ -84,7 +90,14 @@ _start:
 	fild word [buff]
 	fild dword [a]
 	fmulp
-	fdivp ; WTF?
+	fdivp
+	;fild dword [hmm]
+	;fmulp
+	;fistp dword [result]
+	;fild dword [result]
+	;fild dword [hmm]
+	;fdivp
+	;;; End second
 
 	mov word [buff], 0
 	fild word [buff]
@@ -92,30 +105,24 @@ _start:
 	fsubr st1
 	fxch st2
 	fsubp st1
-	;fxch st1
 
-	fist dword [result]
+	fstp dword [result]
+	push dword [result]
+	fstp dword [result]
+	push dword [result]
 	;;; |x1|
 	;;; |x2|
 	
-	;;;;;;;;;;;;;;;;;;;
-
-
-	;mov eax, [b]
-	mov eax, [result]
-	;imul dword [sign]
-
 	jmp short .outNumber
 
-	;test eax, eax
-	;jns .positive
-
-	;neg eax
-	;push minus
-	;call putChar
-
-	;add esp, 4
-	;jmp short .positive
+.notQEq:
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, err_msg_no_qeq
+	mov edx, len_nqe
+	int 80h
+	call finish
+	jmp short _end
 
 .noSolution:
 	mov eax, 4
@@ -127,11 +134,8 @@ _start:
 	jmp short _end
 
 .outNumber:
-	;mov eax, [b]
-	;neg eax
-	push eax
 	call outputNumber
-	add esp, 4
+	add esp, 8
 
 	jmp short _end
 	

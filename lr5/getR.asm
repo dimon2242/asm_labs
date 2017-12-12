@@ -7,7 +7,7 @@ EXTERN outputNumber
 
 section .data
 	err_msg db "ERROR"
-	len equ $-err_msg ;;;;;; Предыдущий минус мешает последующим вычислениям?
+	len equ $-err_msg
 
 inputNumber:
 	push ebp
@@ -37,9 +37,10 @@ inputNumber:
 	je .return
 	cmp eax, " "
 	je .return
+	cmp eax, '+'
+	jz short .while
 	cmp eax, "-"
 	jnz short .afterNegative
-	;mov byte [ebp-4], 1 ; Для отрицательного числа
 	neg dword [ebp-4]
 	jmp .while
 
@@ -56,19 +57,14 @@ inputNumber:
 	mul ecx
 	mov edx, eax
 	add edx, ebx
-	;mov [ebp-4], edx
-	;sub edx, '0'
 	mov [ebp-12], edx
 	jmp .while
 
 .frac:
-	;xor ecx, ecx
 	xor esi, esi
 	xor edx, edx
 	xor ebx, ebx
 .whileFrac:
-	;push ecx
-	;mov ecx, 0
 	call getChar
 	cmp eax, 10
 	je .prepareFrac
@@ -86,10 +82,7 @@ inputNumber:
 	mul ecx
 	mov edx, eax
 	add edx, ebx
-
-	;sub eax, '0'
-	;mov [ebp-16], eax ; первая локальная переменная
-	mov [ebp-16], edx ; первая локальная переменная
+	mov [ebp-16], edx
 
 	jmp .whileFrac
 
@@ -110,14 +103,9 @@ inputNumber:
 .endDiv:
 	fadd st1
 	fist dword [ebp-12]
-	;add al, byte [ebp-4] ; ????
-	jmp .fracEnd
+	jmp .return
 
 .return:
-.end:
-	;mov eax, [ebp-12]
-	;mov [ebp-12], eax
-.fracEnd:
 	mov eax, [ebp-12]
 	imul dword [ebp-4]
 	;mov dword [ebp-4], 1
