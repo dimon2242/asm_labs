@@ -14,14 +14,14 @@ _start:
 	jmp _end
 	
 inputNumber:
-	push ebp
+	push ebp ; пролог
 	mov ebp, esp
-	sub esp, 4
+	sub esp, 4 ; всё ещё пролог. Тут выделяем 4 байта под локальные данные
 
-	push ebx
-	push ecx
-	push edx
-	pushfd
+	push ebx ; сохраняем регистры, которые будут использоваться в этой подпрограмме
+	push ecx ; то же самое
+	push edx ; то же самое
+	pushfd ; сохраняем состояние всех флагов
 
 	mov edx, 0
 	mov ecx, 10
@@ -44,19 +44,19 @@ inputNumber:
 	mul ecx
 	mov edx, eax
 	add edx, ebx
-	mov [ebp-4], edx
+	mov [ebp-4], edx ; храним в локальной памяти
 	jmp .while
 .return:
-	mov eax, [ebp-4]
+	mov eax, [ebp-4] ; возвращаем из подпрграммы значение через eax
 
-	popfd
-	pop edx
-	pop ecx
-	pop ebx
+	popfd ; восстанавливаем флаги
+	pop edx ; восстанавливаем регистры
+	pop ecx ; тоже
+	pop ebx ; тоже
 
-	mov esp, ebp
-	pop ebp
-	ret
+	mov esp, ebp ; возвращаем указатель на вершину стека (эпилог)
+	pop ebp ; возвращаем базовый указатель
+	ret ; выходим в точку вызова
 	
 .err:
 	PRINT "ERROR"
@@ -67,12 +67,12 @@ outputNumber:
 	mov ebp, esp
 	sub esp, 8
 
-	pushad
-	pushfd
+	pushad ; сохраняем dword регистры
+	pushfd ; сохраняем флаги
 
 	mov ecx, 10
 
-	mov eax, [ebp+8]
+	mov eax, [ebp+8] ; обращаемся к параметрам, переданным подпрограмме через стек
 	mov esi, ebp
 
 .while:
