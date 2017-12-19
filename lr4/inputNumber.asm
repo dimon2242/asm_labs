@@ -23,27 +23,7 @@ inputNumber:
 	mov eax, 0
 
 .while:
-	;GETCHAR
-	;======
-	;push eax
-	;push ebx
-	;push ecx
-	;push edx
-
-	;mov eax, 3
-	;mov ebx, 0
-	;lea ecx, [ebp-4]
-	;mov edx, 1
-	;int 80h
-
 	call getChar
-
-	;pop edx
-	;pop ecx
-	;pop ebx
-	;pop eax
-	;=====
-	;mov eax, [ebp-4]
 
 	cmp eax, 10
 	je .return

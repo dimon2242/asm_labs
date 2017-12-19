@@ -18,7 +18,7 @@ _start:
 	mov ebx, 0
 	push eax
 	call outputNumber
-	add esp, 4
+	add esp, 4 ; убираем из стека аргумент, который передавали подпрограмме выше (push eax)
 
 	jmp _end
 	
